@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Buy or Wait — AI Financial Agent</title>
+<meta name="description" content="Buy or Wait financial affordability agent for the HackerRank hackathon">
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#667085;--line:#e4e7ec;--primary:#1769ff;--primary2:#0d47c9;--good:#087443;--warn:#b54708;--bad:#b42318;--shadow:0 12px 35px rgba(16,24,40,.08)}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(135deg,#eef4ff,#f8fafc 45%,#eefbf5);color:var(--text)}
+button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+.top{padding:18px 24px;display:flex;justify-content:space-between;align-items:center;max-width:1250px;margin:auto}.brand{font-weight:800;font-size:20px}.brand span{color:var(--primary)}
+.badge{font-size:12px;background:#eaf2ff;color:#155eef;padding:7px 10px;border-radius:999px;font-weight:700}
+.shell{max-width:1250px;margin:10px auto 40px;padding:0 20px}.hero{padding:25px 0 18px}.hero h1{font-size:clamp(30px,5vw,48px);margin:0 0 8px;letter-spacing:-1.5px}.hero p{color:var(--muted);max-width:780px;font-size:16px;line-height:1.6}
+.grid{display:grid;grid-template-columns:1.05fr .95fr;gap:20px}.card{background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow);backdrop-filter:blur(8px)}.card h2{margin:0 0 16px;font-size:19px}.sub{color:var(--muted);font-size:13px;margin-top:-8px;margin-bottom:15px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:13px}.full{grid-column:1/-1}label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}input,select,textarea{width:100%;border:1px solid #d0d5dd;border-radius:11px;padding:11px 12px;background:#fff;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px #eaf2ff}
+.row{display:flex;gap:9px;flex-wrap:wrap}.btn{border:0;border-radius:11px;padding:11px 15px;font-weight:750}.primary{background:var(--primary);color:#fff}.primary:hover{background:var(--primary2)}.secondary{background:#eef2f7;color:#344054}.danger{background:#fee4e2;color:#b42318}
+.expenses{margin-top:12px}.expense{display:grid;grid-template-columns:1fr 130px 42px;gap:8px;margin:8px 0}.remove{border:0;border-radius:10px;background:#f2f4f7;color:#b42318;font-size:18px}
+.result{min-height:100%}.decision{padding:18px;border-radius:16px;background:#f8fafc;border:1px solid var(--line);margin-bottom:14px}.decision h3{margin:0 0 5px;font-size:22px}.amount{font-size:35px;font-weight:850;letter-spacing:-1px}.status{display:inline-block;margin:8px 0;padding:7px 10px;border-radius:999px;font-size:12px;font-weight:800}.now{background:#dcfae6;color:var(--good)}.plan{background:#fef0c7;color:var(--warn)}.later{background:#fff1eb;color:#c4320a}.no{background:#fee4e2;color:var(--bad)}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}.kpi{border:1px solid var(--line);border-radius:13px;padding:13px}.kpi small{color:var(--muted);display:block}.kpi b{font-size:18px}.list{margin:10px 0 0;padding-left:19px;color:#475467;line-height:1.65}.explain{background:#f9fafb;border-radius:13px;padding:13px;line-height:1.55;color:#475467}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:18px}
+.modal{position:fixed;inset:0;background:rgba(16,24,40,.62);display:grid;place-items:center;padding:20px;z-index:10}.login{max-width:420px;width:100%;background:#fff;border-radius:22px;padding:25px;box-shadow:0 25px 80px rgba(0,0,0,.25)}.login h2{margin-top:0}.notice{font-size:12px;color:var(--muted);line-height:1.5;background:#f8fafc;padding:10px;border-radius:10px;margin:12px 0}
+.toast{position:fixed;right:18px;bottom:18px;background:#101828;color:#fff;padding:12px 15px;border-radius:11px;opacity:0;transform:translateY(8px);transition:.2s;z-index:20}.toast.show{opacity:1;transform:none}
+@media(max-width:850px){.grid{grid-template-columns:1fr}.form{grid-template-columns:1fr}.full{grid-column:auto}.expense{grid-template-columns:1fr 100px 42px}.top{padding:15px}.shell{padding:0 13px}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="loginModal" class="modal">
+  <div class="login">
+    <div class="brand">Buy <span>or</span> Wait</div>
+    <h2 id="loginTitle">Create your local password</h2>
+    <p class="sub">This protects the page on this browser. It is a local privacy gate, not server-side security.</p>
+    <input id="password" type="password" placeholder="Password (8+ characters)" autocomplete="new-password">
+    <input id="password2" class="hidden" type="password" placeholder="Confirm password" autocomplete="new-password" style="margin-top:8px">
+    <button id="loginBtn" class="btn primary" style="width:100%;margin-top:10px">Create password</button>
+    <div class="notice">Do not enter real bank credentials, card numbers, PINs, or API keys into this demo. A static HTML file cannot provide true financial-data security.</div>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script>
+const savedHash=localStorage.getItem("buywait_password_hash");
+const loginModal=document.getElementById("loginModal"), p=document.getElementById("password"), p2=document.getElementById("password2"), lb=document.getElementById("loginBtn"), lt=document.getElementById("loginTitle");
+async function sha256(s){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+if(savedHash){lt.textContent="Unlock Buy or Wait";p2.classList.add("hidden");lb.textContent="Unlock"}
+else p2.classList.remove("hidden");
+lb.onclick=async()=>{const a=p.value;if(a.length<8){alert("Use at least 8 characters.");return}
+if(!savedHash){if(a!==p2.value){alert("Passwords do not match.");return}localStorage.setItem("buywait_password_hash",await sha256(a))}
+else if(await sha256(a)!==localStorage.getItem("buywait_password_hash")){alert("Incorrect password.");return}
+loginModal.classList.add("hidden");sessionStorage.setItem("buywait_unlocked","1")};
+if(sessionStorage.getItem("buywait_unlocked")==="1")loginModal.classList.add("hidden");
+</script>
+
+<script type="text/babel">
+const {useState}=React;
+const money=n=>"₹"+Number(n||0).toLocaleString("en-IN",{maximumFractionDigits:2});
+const today=()=>new Date().toISOString().slice(0,10);
+function App(){
+ const [balance,setBalance]=useState(50000),[income,setIncome]=useState(0),[pending,setPending]=useState(5000),[item,setItem]=useState("Laptop"),[cost,setCost]=useState(30000);
+ const [essential,setEssential]=useState(15000),[flex,setFlex]=useState(3000),[reserve,setReserve]=useState(5000);
+ const [expenses,setExpenses]=useState([{name:"Hostel/food",amount:8000},{name:"Travel",amount:2000}]);
+ const [method,setMethod]=useState("Pay in full"),[months,setMonths]=useState(3),[result,setResult]=useState(null);
+ const [transcript,setTranscript]=useState([]);
+ const addExpense=()=>setExpenses([...expenses,{name:"New expense",amount:0}]);
+ const calc=()=>{
+   const recurring=expenses.reduce((s,e)=>s+Number(e.amount||0),0);
+   const committed=Number(pending)+Number(essential)+recurring;
+   const safe=Math.max(0,Number(balance)-committed-Number(reserve));
+   const price=Number(cost);
+   let status,pm,plan=[],earliest=today(),changes=[];
+   if(price<=safe){status="affordable_now";pm="Pay in full now";plan=[{date:today(),amount:price}];}
+   else {
+     const monthlySurplus=Math.max(0,Number(income)+Math.max(0,Number(balance)-Number(essential)-Number(pending)-Number(reserve))/1);
+     const installment=Math.ceil(price/Number(months));
+     if(installment>0 && installment<=Math.max(0,monthlySurplus)){
+       status="affordable_with_plan";pm="Installments";
+       for(let i=1;i<=Number(months);i++){let d=new Date();d.setMonth(d.getMonth()+i);plan.push({date:d.toISOString().slice(0,10),amount:i===Number(months)?price-installment*(Number(months)-1):installment});}
+       earliest=plan[0].date;
+     }else if(Number(income)>0){
+       status="affordable_later";pm="Wait for confirmed income";let need=price-safe;let monthly=Math.max(1,Number(income));let m=Math.ceil(need/monthly);let d=new Date();d.setMonth(d.getMonth()+m);earliest=d.toISOString().slice(0,10);plan=[{date:earliest,amount:price}];
+     }else{status="not_affordable";pm="Do not proceed";plan=[];earliest="Not currently safe";changes=expenses.filter(e=>Number(e.amount)>0).sort((a,b)=>b.amount-a.amount).slice(0,3).map(e=>"Reduce "+e.name+" by about "+money(Math.min(e.amount,Math.max(0,price-safe))));}
+   }
+   const statusText={affordable_now:"Affordable now",affordable_with_plan:"Affordable with a plan",affordable_later:"Affordable later",not_affordable:"Not affordable"}[status];
+   const explanation=`Current balance is ${money(balance)}. Estimated commitments/reserve are ${money(committed+Number(reserve))}, leaving ${money(safe)} safely available today. The requested ${item} costs ${money(price)}.`;
+   const r={amount_safe_to_pay:Math.round(safe*100)/100,affordability_status:status,recommended_payment_method:pm,payment_plan:plan,earliest_date_for_full_payment:earliest,spending_changes_needed:changes,decision_explanation:explanation,statusText};
+   setResult(r);setTranscript(t=>[...t,{time:new Date().toLocaleString(),user:`Can I afford this ${item} for ${money(price)}?`,agent:r}]);return r;
+ };
+ const csv=()=>{
+   if(!result){alert("Run the assessment first.");return}
+   const esc=x=>`"${String(x??"").replaceAll('"','""')}"`;
+   const row=[today(),item,balance,essential,pending,cost,result.amount_safe_to_pay,result.affordability_status,result.recommended_payment_method,JSON.stringify(result.payment_plan),result.earliest_date_for_full_payment,result.spending_changes_needed.join(" | "),result.decision_explanation];
+   const data="date,item,balance,essential_expenses,pending_payments,item_cost,amount_safe_to_pay,affordability_status,recommended_payment_method,payment_plan,earliest_date_for_full_payment,spending_changes_needed,decision_explanation\n"+row.map(esc).join(",");
+   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type:"text/csv"}));a.download="output.csv";a.click();
+ };
+ const log=()=>{
+   if(!transcript.length){alert("Run the assessment first.");return}
+   const text=transcript.map(x=>`[${x.time}] USER: ${x.user}\nAGENT: ${JSON.stringify(x.agent,null,2)}`).join("\n\n");
+   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:"text/plain"}));a.download="log.txt";a.click();
+ };
+ const reset=()=>{setResult(null);setTranscript([]);};
+ return <><div className="top"><div className="brand">Buy <span>or</span> Wait</div><div className="badge">AI Financial Agent • Hackathon Demo</div></div>
+ <main className="shell">
+ <section className="hero"><h1>Can I afford it?</h1><p>Make a safer purchase decision using balance, essential spending, recurring commitments, pending payments, income, reserves and payment options—not balance alone.</p></section>
+ <div className="grid">
+ <section className="card"><h2>Financial profile</h2><div className="form">
+ <div><label>Current balance (₹)</label><input type="number" value={balance} onChange={e=>setBalance(e.target.value)}/></div>
+ <div><label>Confirmed income coming (₹)</label><input type="number" value={income} onChange={e=>setIncome(e.target.value)}/></div>
+ <div><label>Essential expenses (₹)</label><input type="number" value={essential} onChange={e=>setEssential(e.target.value)}/></div>
+ <div><label>Pending payments (₹)</label><input type="number" value={pending} onChange={e=>setPending(e.target.value)}/></div>
+ <div><label>Emergency reserve (₹)</label><input type="number" value={reserve} onChange={e=>setReserve(e.target.value)}/></div>
+ <div><label>Flexible spending (₹)</label><input type="number" value={flex} onChange={e=>setFlex(e.target.value)}/></div>
+ </div>
+ <h2 style={{marginTop:22}}>Recurring expenses</h2>
+ <div className="expenses">{expenses.map((e,i)=><div className="expense" key={i}><input value={e.name} onChange={x=>{let a=[...expenses];a[i].name=x.target.value;setExpenses(a)}}/><input type="number" value={e.amount} onChange={x=>{let a=[...expenses];a[i].amount=x.target.value;setExpenses(a)}}/><button className="remove" onClick={()=>setExpenses(expenses.filter((_,j)=>j!==i))}>×</button></div>)}</div>
+ <button className="btn secondary" onClick={addExpense}>+ Add recurring expense</button>
+ </section>
+ <section className="card result"><h2>Purchase request</h2><div className="form">
+ <div><label>What do you want to buy?</label><input value={item} onChange={e=>setItem(e.target.value)}/></div>
+ <div><label>Cost (₹)</label><input type="number" value={cost} onChange={e=>setCost(e.target.value)}/></div>
+ <div><label>Preferred payment</label><select value={method} onChange={e=>setMethod(e.target.value)}><option>Pay in full</option><option>Installments</option><option>Pay partially</option><option>Wait</option></select></div>
+ <div><label>Installment months</label><select value={months} onChange={e=>setMonths(e.target.value)}><option>2</option><option>3</option><option>4</option><option>6</option><option>12</option></select></div>
+ </div>
+ <div className="row" style={{marginTop:16}}><button className="btn primary" onClick={calc}>Analyze affordability</button><button className="btn secondary" onClick={reset}>Reset result</button></div>
+ {result&&<div style={{marginTop:20}}><div className="decision"><h3>{result.statusText}</h3><div className="amount">{money(result.amount_safe_to_pay)}</div><small>Maximum estimated safe amount to pay today</small><div><span className={"status "+(result.affordability_status==="affordable_now"?"now":result.affordability_status==="not_affordable"?"no":"plan")}>{result.recommended_payment_method}</span></div></div>
+ <div className="kpis"><div className="kpi"><small>Full payment date</small><b>{result.earliest_date_for_full_payment}</b></div><div className="kpi"><small>Plan</small><b>{result.payment_plan.length?result.payment_plan.map(x=>money(x.amount)).join(" + "):"—"}</b></div></div>
+ <div className="explain" style={{marginTop:12}}><b>Why?</b><br/>{result.decision_explanation}</div>
+ {result.spending_changes_needed.length>0&&<ul className="list">{result.spending_changes_needed.map((x,i)=><li key={i}>{x}</li>)}</ul>}
+ <div className="row" style={{marginTop:14}}><button className="btn primary" onClick={csv}>Export output.csv</button><button className="btn secondary" onClick={log}>Export log.txt</button></div>
+ </div>}
+ </section></div>
+ <section className="card" style={{marginTop:20}}><h2>Hackathon-ready workflow</h2><p className="sub">This demo keeps the decision engine deterministic and auditable. An LLM can be added for extracting facts from natural-language messages/images, while the final affordability calculation should remain rule-based and testable.</p><div className="kpis"><div className="kpi"><small>1. Extract</small><b>Income & commitments</b></div><div className="kpi"><small>2. Calculate</small><b>Safe-to-pay amount</b></div><div className="kpi"><small>3. Decide</small><b>Now / Plan / Later / No</b></div><div className="kpi"><small>4. Explain</small><b>Reason + payment plan</b></div></div></section>
+ </main><footer>Local demo • No banking connection • Never store real financial credentials in a static client-side app.</footer></>;
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
